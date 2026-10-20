@@ -1,0 +1,6 @@
+[
+  { "id": "sample-couch", "name": "Sample Couch", "slot": "furniture" },
+  { "id": "sample-lamp", "name": "Sample Lamp", "slot": "lighting" },
+  { "id": "sample-rug", "name": "Sample Rug", "slot": "floor" },
+  { "id": "another-plant", "name": "Another Plant", "slot": "plants" }
+]

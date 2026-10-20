@@ -1,0 +1,115 @@
+import { el } from "./ui.js";
+import { loadItems } from "./data.js";
+
+const PAGE_SIZE = 50;
+const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+const kind = document.body.dataset.kind === "den" ? "den" : "clothing";
+
+const letterSelect = document.getElementById("letter-select");
+const slotSelect = document.getElementById("slot-select");
+const status = document.getElementById("status");
+const grid = document.getElementById("grid");
+const prev = document.getElementById("prev");
+const next = document.getElementById("next");
+const pageInfo = document.getElementById("page-info");
+
+let items = [];
+let currentPage = 1;
+
+function readState() {
+  const params = new URLSearchParams(location.search);
+  const letter = params.get("letter");
+  const slot = params.get("slot");
+  const page = Number.parseInt(params.get("page"), 10);
+  const slots = new Set(items.map((item) => item.slot));
+  return {
+    letter: LETTERS.includes(letter) ? letter : "all",
+    slot: slots.has(slot) ? slot : "all",
+    page: Number.isInteger(page) && page > 0 ? page : 1,
+  };
+}
+
+function writeState(state) {
+  const params = new URLSearchParams();
+  if (state.letter !== "all") params.set("letter", state.letter);
+  if (state.slot !== "all") params.set("slot", state.slot);
+  if (state.page > 1) params.set("page", String(state.page));
+  const query = params.toString();
+  history.pushState(null, "", query ? `?${query}` : location.pathname);
+  render();
+}
+
+function card(item) {
+  const media = item.image
+    ? el("img", {
+        className: "thumb",
+        attrs: { src: item.image, alt: item.name, loading: "lazy", width: "96", height: "96" },
+      })
+    : el("div", { className: "thumb placeholder", text: item.name.charAt(0).toUpperCase() });
+  return el("li", { className: "card" }, [
+    media,
+    el("span", { className: "name", text: item.name }),
+    el("span", { className: "slot", text: item.slot }),
+  ]);
+}
+
+function render() {
+  const state = readState();
+  const filtered = items.filter((item) => {
+    const letterOk = state.letter === "all" || item.name.charAt(0).toLowerCase() === state.letter;
+    const slotOk = state.slot === "all" || item.slot === state.slot;
+    return letterOk && slotOk;
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const page = Math.min(state.page, totalPages);
+  const start = (page - 1) * PAGE_SIZE;
+  const visible = filtered.slice(start, start + PAGE_SIZE);
+  currentPage = page;
+  letterSelect.value = state.letter;
+  slotSelect.value = state.slot;
+  status.textContent = `${filtered.length} items`;
+  grid.replaceChildren(...visible.map(card));
+  pageInfo.textContent = `Page ${page} of ${totalPages}`;
+  prev.disabled = page <= 1;
+  next.disabled = page >= totalPages;
+}
+
+function fillSelects() {
+  letterSelect.append(el("option", { text: "All letters", attrs: { value: "all" } }));
+  for (const letter of LETTERS) {
+    letterSelect.append(el("option", { text: letter.toUpperCase(), attrs: { value: letter } }));
+  }
+  slotSelect.append(el("option", { text: "All types", attrs: { value: "all" } }));
+  const slots = [...new Set(items.map((item) => item.slot))].sort();
+  for (const slot of slots) {
+    slotSelect.append(el("option", { text: slot, attrs: { value: slot } }));
+  }
+}
+
+function onFilterChange() {
+  writeState({ letter: letterSelect.value, slot: slotSelect.value, page: 1 });
+}
+
+async function init() {
+  try {
+    items = await loadItems(kind);
+  } catch {
+    status.textContent = "Could not load items.";
+    return;
+  }
+  fillSelects();
+  letterSelect.addEventListener("change", onFilterChange);
+  slotSelect.addEventListener("change", onFilterChange);
+  prev.addEventListener("click", () => {
+    const state = readState();
+    writeState({ ...state, page: Math.max(1, currentPage - 1) });
+  });
+  next.addEventListener("click", () => {
+    const state = readState();
+    writeState({ ...state, page: currentPage + 1 });
+  });
+  window.addEventListener("popstate", render);
+  render();
+}
+
+init();
