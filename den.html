@@ -29,7 +29,10 @@
   <main>
     <div class="controls">
       <label>Letter <select id="letter-select"></select></label>
-      <label>Type <select id="slot-select"></select></label>
+      <details id="type-picker" class="picker">
+        <summary id="type-summary">Type: All types</summary>
+        <ul id="type-list" class="picker-list"></ul>
+      </details>
     </div>
     <p id="status"></p>
     <ul id="grid" class="grid"></ul>
