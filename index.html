@@ -4,37 +4,39 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
-  <title>AJB Lookbook</title>
+  <title>🕮 | AJB Lookbook</title>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="AJB Lookbook">
   <meta property="og:title" content="AJB Lookbook">
-  <meta property="og:description" content="An unofficial item catalog and tools website for Animal Jam Classic and Burrow.">
+  <meta property="og:description" content="An unofficial item catalog and outfit tools for Animal Jam Classic Burrow players.">
   <meta property="og:url" content="https://warpedfart.github.io/ajb-lookbook/">
   <meta property="og:image" content="https://warpedfart.github.io/ajb-lookbook/assets/preview.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#d97706">
+  <meta name="theme-color" content="#000000">
   <link rel="stylesheet" href="css/style.css">
-  <script type="module" src="js/theme.js"></script>
 </head>
 <body>
-  <header>
-    <h1>AJB Lookbook</h1>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="AJB Lookbook home">🕮</a>
     <nav>
-      <a href="index.html">Home</a>
+      <a href="index.html" aria-current="page">Home</a>
       <a href="clothing.html">Clothing</a>
-      <a href="den.html">Den items</a>
+      <a href="den.html">Den Items</a>
     </nav>
-    <label>
-      Theme
-      <select id="theme-select">
-        <option value="system">System</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-    </label>
   </header>
   <main>
-    <p class="tagline">An unofficial item catalog and tools website for Animal Jam Classic and Burrow.</p>
+    <h1>AJB Lookbook</h1>
+    <p class="muted">An unofficial item catalog for Animal Jam Classic Burrow players.</p>
+    <div class="home-links">
+      <a class="home-link" href="clothing.html">
+        <h2>Clothing</h2>
+        <span>Browse every clothing item by letter and type.</span>
+      </a>
+      <a class="home-link" href="den.html">
+        <h2>Den items</h2>
+        <span>Browse every den item by letter and type.</span>
+      </a>
+    </div>
   </main>
 </body>
 </html>
