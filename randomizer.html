@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>🕮 | Randomizer | AJB Lookbook</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/randomizer.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="AJB Lookbook home">🕮</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="clothing.html">Clothing</a>
+      <a href="den.html">Den items</a>
+      <a href="randomizer.html" aria-current="page">Randomizer</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Randomizer</h1>
+    <section class="panel filters">
+      <label>Mode
+        <select id="mode-select">
+          <option value="clothing">Clothing</option>
+          <option value="den">Den items</option>
+        </select>
+      </label>
+      <button id="roll-all" class="toggle" type="button">Roll all</button>
+    </section>
+    <p id="status" class="muted"></p>
+    <ul id="rows" class="grid"></ul>
+  </main>
+</body>
+</html>
