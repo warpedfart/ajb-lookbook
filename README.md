@@ -1,2 +1,2 @@
 # ajb-lookbook
-Item catalog and outfit tools for Animal Jam Classic Burrow users.
+An unofficial item catalog and tools website for Animal Jam Classic and Burrow.
