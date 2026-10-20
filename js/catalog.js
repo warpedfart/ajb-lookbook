@@ -1,12 +1,17 @@
 import { el } from "./ui.js";
 import { loadItems } from "./data.js";
+import { TYPES } from "./types.js";
 
 const PAGE_SIZE = 50;
 const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 const kind = document.body.dataset.kind === "den" ? "den" : "clothing";
+const types = TYPES[kind];
+const typeSlots = new Set(types.map((type) => type.slot));
 
 const letterSelect = document.getElementById("letter-select");
-const slotSelect = document.getElementById("slot-select");
+const typePicker = document.getElementById("type-picker");
+const typeSummary = document.getElementById("type-summary");
+const typeList = document.getElementById("type-list");
 const status = document.getElementById("status");
 const grid = document.getElementById("grid");
 const prev = document.getElementById("prev");
@@ -21,10 +26,9 @@ function readState() {
   const letter = params.get("letter");
   const slot = params.get("slot");
   const page = Number.parseInt(params.get("page"), 10);
-  const slots = new Set(items.map((item) => item.slot));
   return {
     letter: LETTERS.includes(letter) ? letter : "all",
-    slot: slots.has(slot) ? slot : "all",
+    slot: typeSlots.has(slot) ? slot : "all",
     page: Number.isInteger(page) && page > 0 ? page : 1,
   };
 }
@@ -53,6 +57,24 @@ function card(item) {
   ]);
 }
 
+function typeOption(slot, label) {
+  const button = el("button", {
+    className: "type-option",
+    text: label,
+    attrs: { type: "button" },
+  });
+  button.addEventListener("click", () => {
+    typePicker.open = false;
+    writeState({ letter: letterSelect.value, slot, page: 1 });
+  });
+  return el("li", {}, [button]);
+}
+
+function typeLabel(slot) {
+  const match = types.find((type) => type.slot === slot);
+  return match ? match.label : "All types";
+}
+
 function render() {
   const state = readState();
   const filtered = items.filter((item) => {
@@ -66,7 +88,7 @@ function render() {
   const visible = filtered.slice(start, start + PAGE_SIZE);
   currentPage = page;
   letterSelect.value = state.letter;
-  slotSelect.value = state.slot;
+  typeSummary.textContent = `Type: ${typeLabel(state.slot)}`;
   status.textContent = `${filtered.length} items`;
   grid.replaceChildren(...visible.map(card));
   pageInfo.textContent = `Page ${page} of ${totalPages}`;
@@ -74,20 +96,19 @@ function render() {
   next.disabled = page >= totalPages;
 }
 
-function fillSelects() {
+function fillControls() {
   letterSelect.append(el("option", { text: "All letters", attrs: { value: "all" } }));
   for (const letter of LETTERS) {
     letterSelect.append(el("option", { text: letter.toUpperCase(), attrs: { value: letter } }));
   }
-  slotSelect.append(el("option", { text: "All types", attrs: { value: "all" } }));
-  const slots = [...new Set(items.map((item) => item.slot))].sort();
-  for (const slot of slots) {
-    slotSelect.append(el("option", { text: slot, attrs: { value: slot } }));
+  typeList.append(typeOption("all", "All types"));
+  for (const type of types) {
+    typeList.append(typeOption(type.slot, type.label));
   }
 }
 
-function onFilterChange() {
-  writeState({ letter: letterSelect.value, slot: slotSelect.value, page: 1 });
+function onLetterChange() {
+  writeState({ letter: letterSelect.value, slot: readState().slot, page: 1 });
 }
 
 async function init() {
@@ -97,16 +118,13 @@ async function init() {
     status.textContent = "Could not load items.";
     return;
   }
-  fillSelects();
-  letterSelect.addEventListener("change", onFilterChange);
-  slotSelect.addEventListener("change", onFilterChange);
+  fillControls();
+  letterSelect.addEventListener("change", onLetterChange);
   prev.addEventListener("click", () => {
-    const state = readState();
-    writeState({ ...state, page: Math.max(1, currentPage - 1) });
+    writeState({ ...readState(), page: Math.max(1, currentPage - 1) });
   });
   next.addEventListener("click", () => {
-    const state = readState();
-    writeState({ ...state, page: currentPage + 1 });
+    writeState({ ...readState(), page: currentPage + 1 });
   });
   window.addEventListener("popstate", render);
   render();
