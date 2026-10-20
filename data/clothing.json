@@ -1,0 +1,8 @@
+[
+  { "id": "sample-hat", "name": "Sample Hat", "slot": "head" },
+  { "id": "sample-crown", "name": "Sample Crown", "slot": "head" },
+  { "id": "sample-scarf", "name": "Sample Scarf", "slot": "neck" },
+  { "id": "sample-cape", "name": "Sample Cape", "slot": "back" },
+  { "id": "sample-boots", "name": "Sample Boots", "slot": "feet" },
+  { "id": "another-tail", "name": "Another Tail", "slot": "tail" }
+]

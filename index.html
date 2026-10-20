@@ -1,13 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
-    <title>AJB Lookbook</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>AJB Lookbook</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/theme.js"></script>
 </head>
 <body>
+  <header>
     <h1>AJB Lookbook</h1>
-    <p>An unofficial item catalog for Burrow players.</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="clothing.html">Clothing</a>
+      <a href="den.html">Den items</a>
+    </nav>
+    <label>
+      Theme
+      <select id="theme-select">
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+  </header>
+  <main>
+    <p class="tagline">An unofficial item catalog for Animal Jam Classic and Burrow.</p>
+  </main>
 </body>
 </html>

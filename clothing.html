@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>Clothing | AJB Lookbook</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/theme.js"></script>
+  <script type="module" src="js/catalog.js"></script>
+</head>
+<body data-kind="clothing">
+  <header>
+    <h1>Clothing</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="clothing.html">Clothing</a>
+      <a href="den.html">Den items</a>
+    </nav>
+    <label>
+      Theme
+      <select id="theme-select">
+        <option value="system">System</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+  </header>
+  <main>
+    <div class="controls">
+      <label>Letter <select id="letter-select"></select></label>
+      <label>Type <select id="slot-select"></select></label>
+    </div>
+    <p id="status"></p>
+    <ul id="grid" class="grid"></ul>
+    <div class="pager">
+      <button id="prev" type="button">Previous</button>
+      <span id="page-info"></span>
+      <button id="next" type="button">Next</button>
+    </div>
+  </main>
+</body>
+</html>
