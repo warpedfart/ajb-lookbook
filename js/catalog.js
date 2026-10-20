@@ -112,4 +112,17 @@ async function init() {
   render();
 }
 
+function typeOption(slot, label) {
+  const button = el("button", {
+    className: "type-option",
+    text: label,
+    attrs: { type: "button" },
+  });
+  button.addEventListener("click", () => {
+    typePicker.open = false;
+    writeState({ letter: letterSelect.value, slot, page: 1 });
+  });
+  return el("li", {}, [button]);
+}
+
 init();
