@@ -1,5 +1,5 @@
 const ID_PATTERN = /^[a-z0-9-]{1,64}$/;
-const IMAGE_PATTERN = /^(assets\/items\/[a-z0-9-]{1,64}\.(webp|png)|https:\/\/static\.wikia\.nocookie\.net\/animaljam\/images\/(?!.*\.\.)[A-Za-z0-9_%.\-\/]{1,300})$/;
+const IMAGE_PATTERN = /^(assets\/items\/[a-z0-9-]{1,64}\.(webp|png)|https:\/\/static\.wikia\.nocookie\.net\/[a-z0-9-]{1,60}\/images\/(?!.*\.\.)[A-Za-z0-9_%.\-\/()']{1,400})$/;
 const SLOT_PATTERN = /^[a-z-]{1,24}$/;
 
 function validate(raw) {
