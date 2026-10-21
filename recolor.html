@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>🕮 | Recolor</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module" src="js/recolor.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="AJB Lookbook home">🕮</a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="clothing.html">Clothing</a>
+      <a href="den.html">Den items</a>
+      <a href="randomizer.html">Randomizer</a>
+      <a href="recolor.html" aria-current="page">Recolor</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Recolor</h1>
+    <p id="status" class="muted"></p>
+    <section id="layers" class="panel layers"></section>
+    <section class="panel">
+      <h2>Color code</h2>
+      <div class="code-row">
+        <output id="code" class="code"></output>
+        <button id="copy" class="toggle" type="button">Copy</button>
+        <span id="copy-status" class="muted"></span>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Load a code</h2>
+      <div class="code-row">
+        <input id="code-input" type="text" inputmode="numeric" maxlength="10" aria-label="Color code">
+        <button id="load" class="toggle" type="button">Load</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
