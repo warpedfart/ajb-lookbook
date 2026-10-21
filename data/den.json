@@ -1,11 +1,11 @@
 [
-  { "id": "sample-couch", "name": "Sample Couch", "slot": "furniture" },
-  { "id": "sample-vase", "name": "Sample Vase", "slot": "decor" },
-  { "id": "another-plant", "name": "Another Plant", "slot": "plants" },
-  { "id": "sample-rug", "name": "Sample Rug", "slot": "rugs" },
-  { "id": "sample-lantern", "name": "Sample Lantern", "slot": "hanging" },
-  { "id": "sample-plush", "name": "Sample Plush", "slot": "plushies" },
-  { "id": "sample-pet", "name": "Sample Pet", "slot": "pets" },
-  { "id": "sample-painting", "name": "Sample Painting", "slot": "masterpieces" },
-  { "id": "sample-wallpaper", "name": "Sample Wallpaper", "slot": "walls-floors" }
+  { "id": "sample-couch", "name": "Sample Couch", "slot": "den" },
+  { "id": "sample-vase", "name": "Sample Vase", "slot": "den" },
+  { "id": "sample-plant", "name": "Sample Plant", "slot": "den" },
+  { "id": "sample-rug", "name": "Sample Rug", "slot": "den" },
+  { "id": "sample-lantern", "name": "Sample Lantern", "slot": "den" },
+  { "id": "sample-plush", "name": "Sample Plush", "slot": "den" },
+  { "id": "sample-pet", "name": "Sample Pet", "slot": "den" },
+  { "id": "sample-painting", "name": "Sample Painting", "slot": "den" },
+  { "id": "sample-wallpaper", "name": "Sample Wallpaper", "slot": "den" }
 ]
