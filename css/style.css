@@ -317,3 +317,33 @@ input[type="text"] {
 }
 
 button, input, select, textarea, summary { font-family: inherit; }
+
+.search {
+  flex: 1 1 14rem;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 1rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.search::placeholder { color: var(--muted); }
+.search:hover { background: var(--raised); }
+.search:focus { outline: 2px solid var(--text); outline-offset: 1px; }
+
+.site-footer {
+  max-width: 60rem;
+  margin: 1.5rem auto 2rem;
+  padding: 1rem 1.25rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.site-footer p { margin: 0.35rem 0; }
+.site-footer a { color: var(--text); }

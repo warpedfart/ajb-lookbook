@@ -3,6 +3,7 @@ import { loadItems } from "./data.js";
 import { TYPES } from "./types.js";
 
 const PAGE_SIZE = 50;
+const MAX_QUERY = 60;
 const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 const kind = document.body.dataset.kind === "den" ? "den" : "clothing";
 const types = TYPES[kind];
@@ -10,6 +11,7 @@ const typeSlots = new Set(types.map((type) => type.slot));
 
 const letterSelect = document.getElementById("letter-select");
 const slotSelect = document.getElementById("slot-select");
+const searchInput = document.getElementById("search-input");
 const status = document.getElementById("status");
 const grid = document.getElementById("grid");
 const prev = document.getElementById("prev");
@@ -19,6 +21,13 @@ const pageInfo = document.getElementById("page-info");
 let items = [];
 let currentPage = 1;
 
+function cleanQuery(value) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .trim()
+    .slice(0, MAX_QUERY);
+}
+
 function readState() {
   const params = new URLSearchParams(location.search);
   const letter = params.get("letter");
@@ -27,17 +36,22 @@ function readState() {
   return {
     letter: LETTERS.includes(letter) ? letter : "all",
     slot: typeSlots.has(slot) ? slot : "all",
+    q: cleanQuery(params.get("q")),
     page: Number.isInteger(page) && page > 0 ? page : 1,
   };
 }
 
-function writeState(state) {
+function writeState(state, replace = false) {
   const params = new URLSearchParams();
+  const q = cleanQuery(state.q);
   if (state.letter !== "all") params.set("letter", state.letter);
   if (state.slot !== "all") params.set("slot", state.slot);
+  if (q) params.set("q", q);
   if (state.page > 1) params.set("page", String(state.page));
   const query = params.toString();
-  history.pushState(null, "", query ? `?${query}` : location.pathname);
+  const url = query ? `?${query}` : location.pathname;
+  if (replace) history.replaceState(null, "", url);
+  else history.pushState(null, "", url);
   render();
 }
 
@@ -73,10 +87,12 @@ function card(item) {
 
 function render() {
   const state = readState();
+  const needle = state.q.toLowerCase();
   const filtered = items.filter((item) => {
-    const letterOk = state.letter === "all" || item.name.charAt(0).toLowerCase() === state.letter;
+    const letterOk = state.letter === "all" || item.key.charAt(0) === state.letter;
     const slotOk = state.slot === "all" || item.slot === state.slot;
-    return letterOk && slotOk;
+    const searchOk = needle === "" || item.key.includes(needle);
+    return letterOk && slotOk && searchOk;
   });
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const page = Math.min(state.page, totalPages);
@@ -85,7 +101,7 @@ function render() {
   currentPage = page;
   letterSelect.value = state.letter;
   slotSelect.value = state.slot;
-  status.textContent = `${filtered.length} items`;
+  status.textContent = filtered.length === 0 ? "No items found." : `${filtered.length} items`;
   grid.replaceChildren(...visible.map(card));
   pageInfo.textContent = `Page ${page} of ${totalPages}`;
   prev.disabled = page <= 1;
@@ -104,26 +120,49 @@ function fillControls() {
 }
 
 function onFilterChange() {
-  writeState({ letter: letterSelect.value, slot: slotSelect.value, page: 1 });
+  writeState({
+    letter: letterSelect.value,
+    slot: slotSelect.value,
+    q: searchInput.value,
+    page: 1,
+  });
+}
+
+function onSearchInput() {
+  writeState(
+    {
+      letter: letterSelect.value,
+      slot: slotSelect.value,
+      q: searchInput.value,
+      page: 1,
+    },
+    true,
+  );
 }
 
 async function init() {
   try {
-    items = await loadItems(kind);
+    const loaded = await loadItems(kind);
+    items = loaded.map((item) => ({ ...item, key: item.name.toLowerCase() }));
   } catch {
     status.textContent = "Could not load items.";
     return;
   }
   fillControls();
+  searchInput.value = readState().q;
   letterSelect.addEventListener("change", onFilterChange);
   slotSelect.addEventListener("change", onFilterChange);
+  searchInput.addEventListener("input", onSearchInput);
   prev.addEventListener("click", () => {
     writeState({ ...readState(), page: Math.max(1, currentPage - 1) });
   });
   next.addEventListener("click", () => {
     writeState({ ...readState(), page: currentPage + 1 });
   });
-  window.addEventListener("popstate", render);
+  window.addEventListener("popstate", () => {
+    searchInput.value = readState().q;
+    render();
+  });
   render();
 }
 
