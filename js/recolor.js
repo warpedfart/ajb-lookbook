@@ -58,7 +58,7 @@ copyButton.addEventListener("click", async () => {
     await navigator.clipboard.writeText(String(code));
     copyStatus.textContent = "Copied";
   } catch {
-    copyStatus.textContent = "Copy failed. Select the number and copy it.";
+    copyStatus.textContent = "Copy failed.";
   }
 });
 
@@ -70,7 +70,7 @@ loadButton.addEventListener("click", () => {
   }
   const parsed = unpack(Number(text));
   if (!parsed || parsed.some((index) => index >= palette.length)) {
-    status.textContent = "That is not a regular palette color.";
+    status.textContent = "Invalid palette color.";
     return;
   }
   indexes = parsed;
@@ -88,7 +88,7 @@ async function init() {
   try {
     palette = await loadPalette();
   } catch {
-    status.textContent = "Palette not found. Add data/palette.json first.";
+    status.textContent = "Palette not found.";
     return;
   }
   for (let position = 0; position < LAYERS; position += 1) {

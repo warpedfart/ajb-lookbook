@@ -45,18 +45,33 @@ function toggleLock(slot) {
   render();
 }
 
+function placeholder(item) {
+  return el("div", {
+    className: "thumb placeholder",
+    text: item ? item.name.charAt(0).toUpperCase() : "?",
+  });
+}
+
+function pictureFor(item) {
+  if (!item || !item.image) return placeholder(item);
+  const img = el("img", {
+    className: "thumb",
+    attrs: {
+      src: item.image,
+      alt: item.name,
+      decoding: "async",
+      referrerpolicy: "no-referrer",
+      width: "96",
+      height: "96",
+    },
+  });
+  img.addEventListener("error", () => img.replaceWith(placeholder(item)));
+  return img;
+}
+
 function rowFor(type) {
   const item = current.get(type.slot);
   const isLocked = locked.has(type.slot);
-  const media = item && item.image
-    ? el("img", {
-        className: "thumb",
-        attrs: { src: item.image, alt: item.name, width: "96", height: "96" },
-      })
-    : el("div", {
-        className: "thumb placeholder",
-        text: item ? item.name.charAt(0).toUpperCase() : "?",
-      });
   const lockButton = el("button", {
     className: "toggle",
     text: isLocked ? "Locked" : "Lock",
@@ -74,7 +89,7 @@ function rowFor(type) {
     render();
   });
   return el("li", { className: "card row" }, [
-    media,
+    pictureFor(item),
     el("span", { className: "slot", text: type.label }),
     el("span", { className: "name", text: item ? item.name : "No items" }),
     el("div", { className: "row-actions" }, [lockButton, rerollButton]),
