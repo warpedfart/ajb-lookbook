@@ -2,8 +2,8 @@ export const TYPES = {
   clothing: [
     { slot: "head", label: "Head" },
     { slot: "neck", label: "Neck" },
-    { slot: "back", label: "Back" },
-    { slot: "paws", label: "Paws" },
+    { slot: "body", label: "Body" },
+    { slot: "legs", label: "Legs" },
     { slot: "tail", label: "Tail" },
   ],
   den: [

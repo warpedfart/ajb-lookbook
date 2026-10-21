@@ -41,13 +41,29 @@ function writeState(state) {
   render();
 }
 
+function placeholder(item) {
+  return el("div", { className: "thumb placeholder", text: item.name.charAt(0).toUpperCase() });
+}
+
 function card(item) {
-  const media = item.image
-    ? el("img", {
-        className: "thumb",
-        attrs: { src: item.image, alt: item.name, loading: "lazy", width: "96", height: "96" },
-      })
-    : el("div", { className: "thumb placeholder", text: item.name.charAt(0).toUpperCase() });
+  let media;
+  if (item.image) {
+    media = el("img", {
+      className: "thumb",
+      attrs: {
+        src: item.image,
+        alt: item.name,
+        loading: "lazy",
+        decoding: "async",
+        referrerpolicy: "no-referrer",
+        width: "96",
+        height: "96",
+      },
+    });
+    media.addEventListener("error", () => media.replaceWith(placeholder(item)));
+  } else {
+    media = placeholder(item);
+  }
   return el("li", { className: "card" }, [
     media,
     el("span", { className: "name", text: item.name }),
