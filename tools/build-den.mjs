@@ -8,25 +8,6 @@ const DELAY_MS = 700;
 
 const IMAGE = /^https:\/\/static\.wikia\.nocookie\.net\/[a-z0-9-]{1,60}\/images\/(?!.*\.\.)[A-Za-z0-9_%.\-\/()']{1,400}$/;
 
-const RULES = [
-  ["plushies", /plush|stuffed|\bteddy/],
-  ["pets", /\bpets?\b|\bkitten|\bpuppy/],
-  ["masterpieces", /painting|portrait|masterpiece|\bcanvas|artwork|\bmural|\bposters?\b/],
-  ["rugs", /\brugs?\b|carpet|\bmats?\b|\brunner\b/],
-  ["walls-floors", /\bwalls?\b|wallpaper|\bfloors?\b|flooring|\btiles?\b|\bbrick/],
-  ["hanging", /chandelier|lantern|banner|garland|hanging|curtain|\bmobile\b|wreath|string lights|fairy lights|\bflags?\b|ceiling|bunting|pennant/],
-  ["plants", /\bplant|\bflower|\btrees?\b|treehouse|\bbush|\bvine|\bfern|cactus|bonsai|\bgrass|garden|tulip|\broses?\b|\blily|\bleaf|\bleaves|\bpalm\b|shrub|hedge|bamboo|sapling|bouquet/],
-  ["furniture", /\bchairs?\b|sofa|couch|\btables?\b|\bbeds?\b|\bdesk|shelf|shelves|bookcase|dresser|\bstool|\bbench|cabinet|wardrobe|ottoman|\bchest\b|\bcrib|fridge|stove|bathtub|throne|loveseat|nightstand|\bcounter\b|hammock|\bswing\b|armoire|vanity/],
-];
-
-function categorize(name) {
-  const text = name.toLowerCase();
-  for (const [slot, pattern] of RULES) {
-    if (pattern.test(text)) return slot;
-  }
-  return "decor";
-}
-
 function slugify(name) {
   const slug = name
     .toLowerCase()
@@ -124,7 +105,7 @@ for (const page of pages) {
   let image = page.thumbnail?.source ? String(page.thumbnail.source).split("?")[0] : null;
   if (image && !IMAGE.test(image)) image = null;
   if (!image) noImage += 1;
-  const slot = categorize(name);
+  const slot = "den";
   counts[slot] = (counts[slot] ?? 0) + 1;
   items.push({ id: uniqueId(name), name, slot, image });
 }
