@@ -1,7 +1,9 @@
+
 import { el } from "./ui.js";
 import { loadPalette, pack, unpack, LAYERS } from "./colors.js";
 import { hexToGame, renderSprite } from "./sprite-render.js";
 
+const undoStack = [];
 const layersEl = document.getElementById("layers");
 const codeEl = document.getElementById("code");
 const copyStatus = document.getElementById("copy-status");
@@ -27,7 +29,7 @@ const savedPanel = el("section", { className: "panel" }, [
   el("p", { className: "muted", text: "No saved codes yet." }),
 ]);
 const savedEmpty = savedPanel.querySelector("p");
-previewPanel.after(savedPanel);
+document.querySelector("main").append(savedPanel);
 savedPanel.append(loadedEl);
 
 const CODE_KEY = "ajb-recolor-code";
@@ -170,7 +172,7 @@ function buildLayer(position) {
       },
     });
     paint(button, hex);
-        button.addEventListener("click", () => {
+    button.addEventListener("click", () => {
       indexes[position] = index;
       render();
     });
@@ -301,7 +303,30 @@ function renderLoaded() {
         }
       });
 
-      const row = el("li", { className: "loaded-row" }, [nameInput, codeText, swatchRow]);
+      const removeButton = el("button", {
+        className: "toggle remove-button",
+        text: "×",
+        attrs: {
+          type: "button",
+          "aria-label": `Remove code ${position + 1}`,
+          title: "Remove code",
+        },
+      });
+
+      removeButton.addEventListener("click", () => {
+        undoStack.push(loaded.map((entry) => ({ ...entry })));
+        loaded.splice(position, 1);
+        saveLoaded();
+        renderLoaded();
+      });
+
+      const row = el("li", { className: "loaded-row" }, [
+        nameInput,
+        codeText,
+        swatchRow,
+        removeButton,
+      ]);
+
       if (sprite) {
         swatchRow.classList.add("clickable");
         swatchRow.title = "Preview this code";
@@ -570,5 +595,19 @@ async function init() {
     await selectItem(match);
   }
 }
+
+document.addEventListener("keydown", (event) => {
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    event.key.toLowerCase() === "z"
+  ) {
+    if (undoStack.length === 0) return;
+
+    event.preventDefault();
+    loaded = undoStack.pop();
+    saveLoaded();
+    renderLoaded();
+  }
+});
 
 init();

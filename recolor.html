@@ -21,33 +21,40 @@
     </nav>
   </header>
   <main>
-    <h1>Recolor</h1>
-    <p id="status" class="muted"></p>
-    <section class="panel">
-      <h2>Color Code</h2>
-      <div id="layers" class="layers"></div>
-      <div class="code-row">
-        <output id="code" class="code"></output>
-        <span id="copy-status" class="muted"></span>
-      </div>
-    </section>
-    <section id="preview-panel" class="panel" hidden>
-      <h2>Recolor Item</h2>
-      <div class="item-picker">
-        <input id="item-input" type="text" role="combobox" aria-expanded="false" aria-controls="item-results" aria-autocomplete="list" placeholder="Search for an item" autocomplete="off" aria-label="Clothing item">
-        <ul id="item-results" class="item-results" role="listbox" hidden></ul>
-      </div>
-      <canvas id="preview" class="preview" width="250" height="250" role="img" aria-label="Recolored item preview"></canvas>
-    </section>
-    <section class="panel">
-      <h2>Save a Code</h2>
-      <div class="code-row">
-        <input id="code-input" type="text" inputmode="numeric" maxlength="10" aria-label="Color code">
-        <button id="paste" class="toggle" type="button">Paste</button>
-        <button id="save" class="toggle" type="button">Save</button>
-      </div>
-      <ul id="loaded" class="loaded"></ul>
-    </section>
-  </main>
-</body>
-</html>
+    
+<h1>Recolor</h1>
+<p id="status" class="muted"></p>
+
+<section id="preview-panel" class="panel" hidden>
+  <h2>Recolor Item</h2>
+  <div class="item-picker">
+    <input id="item-input" type="text" role="combobox"
+      aria-expanded="false" aria-controls="item-results"
+      aria-autocomplete="list" placeholder="Search for an item"
+      autocomplete="off" aria-label="Clothing item">
+    <ul id="item-results" class="item-results"
+      role="listbox" hidden></ul>
+  </div>
+  <canvas id="preview" class="preview" width="250" height="250"
+    role="img" aria-label="Recolored item preview"></canvas>
+</section>
+
+<section class="panel">
+  <h2>Color Code</h2>
+  <div id="layers" class="layers"></div>
+  <div class="code-row">
+    <output id="code" class="code"></output>
+    <span id="copy-status" class="muted"></span>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Save a Code</h2>
+  <div class="code-row">
+    <input id="code-input" type="text" inputmode="numeric"
+      maxlength="10" aria-label="Color code">
+    <button id="paste" class="toggle" type="button">Paste</button>
+    <button id="save" class="toggle" type="button">Save</button>
+  </div>
+  <ul id="loaded" class="loaded"></ul>
+</section>
