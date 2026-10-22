@@ -15,6 +15,21 @@ const previewCanvas = document.getElementById("preview");
 const itemInput = document.getElementById("item-input");
 const resultsEl = document.getElementById("item-results");
 
+const saveCurrentButton = el("button", {
+  className: "toggle",
+  text: "Save",
+  attrs: { type: "button" },
+});
+copyStatus.after(saveCurrentButton);
+
+const savedPanel = el("section", { className: "panel" }, [
+  el("h2", { text: "Saved Codes" }),
+  el("p", { className: "muted", text: "No saved codes yet." }),
+]);
+const savedEmpty = savedPanel.querySelector("p");
+previewPanel.after(savedPanel);
+savedPanel.append(loadedEl);
+
 const CODE_KEY = "ajb-recolor-code";
 const LOADED_KEY = "ajb-recolor-loaded";
 const MAX_LOADED = 20;
@@ -210,6 +225,7 @@ function render() {
 }
 
 function renderLoaded() {
+  savedEmpty.style.display = loaded.length === 0 ? "" : "none";
   loadedEl.replaceChildren(
     ...loaded.map((entry, position) => {
       const text = entry.code;
@@ -354,8 +370,28 @@ function saveFromInput() {
   renderLoaded();
 }
 
+function saveCurrent() {
+  const code = pack(indexes);
+  const message = (text) => {
+    copyStatus.textContent = text;
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => {
+      copyStatus.textContent = copyHint();
+    }, 1200);
+  };
+  if (code === null) return message("Not valid");
+  const text = String(code);
+  if (loaded.some((entry) => entry.code === text)) return message("Already saved");
+  if (loaded.length >= MAX_LOADED) return message("Limit reached");
+  loaded.push({ code: text, name: "" });
+  saveLoaded();
+  renderLoaded();
+  return message("Saved");
+}
+
 pasteButton.addEventListener("click", pasteIntoInput);
 saveButton.addEventListener("click", saveFromInput);
+saveCurrentButton.addEventListener("click", saveCurrent);
 codeInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") saveFromInput();
 });
