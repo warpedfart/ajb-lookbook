@@ -7,39 +7,19 @@ const copyButton = document.getElementById("copy");
 const copyStatus = document.getElementById("copy-status");
 const codeInput = document.getElementById("code-input");
 const loadButton = document.getElementById("load");
+const loadedEl = document.getElementById("loaded");
 const status = document.getElementById("status");
+
+const CODE_KEY = "ajb-recolor-code";
+const LOADED_KEY = "ajb-recolor-loaded";
+const MAX_LOADED = 20;
 
 let palette = [];
 let indexes = [0, 0, 0, 0];
+let loaded = [];
 const chips = [];
 const labels = [];
 const swatches = [];
-const STORAGE_KEY = "ajb-recolor-code";
-
-function parseCode(text) {
-  if (!/^\d{1,10}$/.test(text)) return null;
-  const parsed = unpack(Number(text));
-  if (!parsed || parsed.some((index) => index >= palette.length)) return null;
-  return parsed;
-}
-
-function saveCode(code) {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, String(code));
-  } catch {
-    return;
-  }
-}
-
-function restoreCode() {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEY);
-    const parsed = saved === null ? null : parseCode(saved);
-    if (parsed) indexes = parsed;
-  } catch {
-    return;
-  }
-}
 
 function inkFor(hex) {
   const r = Number.parseInt(hex.slice(1, 3), 16);
@@ -51,6 +31,43 @@ function inkFor(hex) {
 function paint(node, hex) {
   node.style.backgroundColor = hex;
   node.style.color = inkFor(hex);
+}
+
+function parseCode(text) {
+  if (!/^\d{1,10}$/.test(text)) return null;
+  const parsed = unpack(Number(text));
+  if (!parsed || parsed.some((index) => index >= palette.length)) return null;
+  return parsed;
+}
+
+function store(key, value) {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    return;
+  }
+}
+
+function restoreCode() {
+  try {
+    const saved = sessionStorage.getItem(CODE_KEY);
+    const parsed = saved === null ? null : parseCode(saved);
+    if (parsed) indexes = parsed;
+  } catch {
+    return;
+  }
+}
+
+function restoreLoaded() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(LOADED_KEY) ?? "[]");
+    if (!Array.isArray(saved)) return;
+    loaded = saved
+      .filter((text) => typeof text === "string" && parseCode(text))
+      .slice(0, MAX_LOADED);
+  } catch {
+    loaded = [];
+  }
 }
 
 function buildLayer(position) {
@@ -95,8 +112,30 @@ function render() {
   });
   const code = pack(indexes);
   codeEl.textContent = code === null ? "Not a valid combination" : String(code);
-  if (code !== null) saveCode(code);
+  if (code !== null) store(CODE_KEY, String(code));
   copyStatus.textContent = "";
+}
+
+function renderLoaded() {
+  loadedEl.replaceChildren(
+    ...loaded.map((text, position) => {
+      const colors = parseCode(text) ?? [];
+      const swatchRow = el(
+        "div",
+        { className: "loaded-chips" },
+        colors.map((index) => {
+          const chip = el("span", { className: "chip", text: String(index) });
+          paint(chip, palette[index]);
+          return chip;
+        }),
+      );
+      return el("li", { className: "loaded-row" }, [
+        el("span", { className: "loaded-label", text: `Code ${position + 1}` }),
+        el("span", { className: "loaded-code", text }),
+        swatchRow,
+      ]);
+    }),
+  );
 }
 
 copyButton.addEventListener("click", async () => {
@@ -116,14 +155,19 @@ function loadFromInput() {
     status.textContent = "Enter a whole number.";
     return;
   }
-  const parsed = parseCode(text);
-  if (!parsed) {
+  if (!parseCode(text)) {
     status.textContent = "Invalid palette color.";
     return;
   }
-  indexes = parsed;
+  if (loaded.length >= MAX_LOADED) {
+    status.textContent = `You can load up to ${MAX_LOADED} codes.`;
+    return;
+  }
+  loaded.push(String(Number(text)));
+  store(LOADED_KEY, JSON.stringify(loaded));
+  codeInput.value = "";
   status.textContent = "";
-  render();
+  renderLoaded();
 }
 
 loadButton.addEventListener("click", loadFromInput);
@@ -155,7 +199,9 @@ async function init() {
     layersEl.append(buildLayer(position));
   }
   restoreCode();
+  restoreLoaded();
   render();
+  renderLoaded();
 }
 
 init();
