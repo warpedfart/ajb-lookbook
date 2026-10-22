@@ -45,6 +45,7 @@ let spriteItems = new Map();
 let indexes = [0, 0, 0, 0];
 let loaded = [];
 let copyTimer = null;
+const removed = [];
 let dragged = null;
 const chips = [];
 const labels = [];
@@ -304,29 +305,17 @@ function renderLoaded() {
       });
 
       const removeButton = el("button", {
-        className: "toggle remove-button",
+        className: "toggle",
         text: "×",
         attrs: {
           type: "button",
+          title: "Remove (Ctrl+Z to undo)",
           "aria-label": `Remove code ${position + 1}`,
-          title: "Remove code",
         },
       });
+      removeButton.addEventListener("click", () => removeLoaded(entry));
 
-      removeButton.addEventListener("click", () => {
-        undoStack.push(loaded.map((entry) => ({ ...entry })));
-        loaded.splice(position, 1);
-        saveLoaded();
-        renderLoaded();
-      });
-
-      const row = el("li", { className: "loaded-row" }, [
-        nameInput,
-        codeText,
-        swatchRow,
-        removeButton,
-      ]);
-
+      const row = el("li", { className: "loaded-row" }, [nameInput, codeText, swatchRow, removeButton]);
       if (sprite) {
         swatchRow.classList.add("clickable");
         swatchRow.title = "Preview this code";
@@ -339,6 +328,35 @@ function renderLoaded() {
     }),
   );
 }
+
+function removeLoaded(entry) {
+  const position = loaded.indexOf(entry);
+  if (position === -1) return;
+  loaded.splice(position, 1);
+  removed.push({ entry, position });
+  saveLoaded();
+  renderLoaded();
+}
+
+function undoRemove() {
+  const last = removed.pop();
+  if (!last) return false;
+  if (loaded.length >= MAX_LOADED) {
+    removed.push(last);
+    return true;
+  }
+  loaded.splice(Math.min(last.position, loaded.length), 0, last.entry);
+  saveLoaded();
+  renderLoaded();
+  return true;
+}
+
+document.addEventListener("keydown", (event) => {
+  if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.key.toLowerCase() !== "z") return;
+  const target = event.target;
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+  if (undoRemove()) event.preventDefault();
+});
 
 async function copyCurrentCode() {
   const code = pack(indexes);
