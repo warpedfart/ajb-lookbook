@@ -1,37 +1,156 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://static.wikia.nocookie.net; object-src 'none'; base-uri 'none'; form-action 'self'">
-  <title>🕮 | Randomizer</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script type="module" src="js/randomizer.js"></script>
-</head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="index.html" aria-label="AJB Lookbook home">🕮</a>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="clothing.html">Clothing Items</a>
-      <a href="den.html">Den Items</a>
-      <a href="randomizer.html" aria-current="page">Randomizer</a>
-      <a href="recolor.html" aria-current="page">Recolor</a>
-    </nav>
-  </header>
-  <main>
-    <h1>Randomizer</h1>
-    <section class="panel filters">
-      <label>Type
-        <select id="mode-select">
-          <option value="clothing">Clothing Items</option>
-          <option value="den">Den Items</option>
-        </select>
-      </label>
-      <button id="roll-all" class="toggle" type="button">Roll All</button>
-    </section>
-    <p id="status" class="muted"></p>
-    <ul id="rows" class="grid"></ul>
-  </main>
-</body>
-</html>
+import { el } from "./ui.js";
+import { loadItems } from "./data.js";
+import { TYPES } from "./types.js";
+
+const MODES = ["clothing", "den"];
+const DEN_COUNT = 12;
+
+const DEN_SLOTS = Array.from({ length: DEN_COUNT }, (_, index) => ({
+  slot: `den-${index}`,
+  label: `Den item ${index + 1}`,
+}));
+
+const modeSelect = document.getElementById("mode-select");
+const rollAll = document.getElementById("roll-all");
+const rows = document.getElementById("rows");
+const status = document.getElementById("status");
+
+let kind = "clothing";
+let pools = new Map();
+let allItems = [];
+let current = new Map();
+let locked = new Set();
+
+function slotsFor(mode) {
+  return mode === "den" ? DEN_SLOTS : TYPES[mode];
+}
+
+function randomIndex(max) {
+  const limit = Math.floor(0x100000000 / max) * max;
+  const buffer = new Uint32Array(1);
+  do {
+    crypto.getRandomValues(buffer);
+  } while (buffer[0] >= limit);
+  return buffer[0] % max;
+}
+
+function rollSlot(slot) {
+  let pool;
+  if (kind === "den") {
+    const taken = new Set();
+    for (const [otherSlot, item] of current) {
+      if (otherSlot !== slot) taken.add(item);
+    }
+    pool = allItems.filter((item) => !taken.has(item));
+    if (pool.length === 0) pool = allItems;
+  } else {
+    pool = pools.get(slot) ?? [];
+  }
+  if (pool.length === 0) {
+    current.delete(slot);
+    return;
+  }
+  current.set(slot, pool[randomIndex(pool.length)]);
+}
+
+function rollUnlocked() {
+  const slots = slotsFor(kind);
+  if (kind === "den") {
+    for (const { slot } of slots) {
+      if (!locked.has(slot)) current.delete(slot);
+    }
+  }
+  for (const { slot } of slots) {
+    if (!locked.has(slot)) rollSlot(slot);
+  }
+  render();
+}
+
+function toggleLock(slot) {
+  if (locked.has(slot)) locked.delete(slot);
+  else locked.add(slot);
+  render();
+}
+
+function placeholder(item) {
+  return el("div", {
+    className: "thumb placeholder",
+    text: item ? item.name.charAt(0).toUpperCase() : "?",
+  });
+}
+
+function pictureFor(item) {
+  if (!item || !item.image) return placeholder(item);
+  const img = el("img", {
+    className: "thumb",
+    attrs: {
+      src: item.image,
+      alt: item.name,
+      decoding: "async",
+      referrerpolicy: "no-referrer",
+      width: "96",
+      height: "96",
+    },
+  });
+  img.addEventListener("error", () => img.replaceWith(placeholder(item)));
+  return img;
+}
+
+function rowFor(type) {
+  const item = current.get(type.slot);
+  const isLocked = locked.has(type.slot);
+  const lockButton = el("button", {
+    className: "toggle",
+    text: isLocked ? "Locked" : "Lock",
+    attrs: { type: "button", "aria-pressed": String(isLocked) },
+  });
+  lockButton.addEventListener("click", () => toggleLock(type.slot));
+  const rerollButton = el("button", {
+    className: "toggle",
+    text: "Reroll",
+    attrs: { type: "button" },
+  });
+  rerollButton.disabled = isLocked;
+  rerollButton.addEventListener("click", () => {
+    rollSlot(type.slot);
+    render();
+  });
+  return el("li", { className: "card row" }, [
+    pictureFor(item),
+    el("span", { className: "slot", text: type.label }),
+    el("span", { className: "name", text: item ? item.name : "No items" }),
+    el("div", { className: "row-actions" }, [lockButton, rerollButton]),
+  ]);
+}
+
+function render() {
+  rows.replaceChildren(...slotsFor(kind).map(rowFor));
+}
+
+async function loadMode(next) {
+  kind = MODES.includes(next) ? next : "clothing";
+  modeSelect.value = kind;
+  locked = new Set();
+  current = new Map();
+  pools = new Map();
+  allItems = [];
+  status.textContent = "Loading...";
+  try {
+    const items = await loadItems(kind);
+    allItems = items;
+    for (const item of items) {
+      if (!pools.has(item.slot)) pools.set(item.slot, []);
+      pools.get(item.slot).push(item);
+    }
+    status.textContent = `${items.length} items loaded`;
+  } catch {
+    status.textContent = "Could not load items.";
+  }
+  rollUnlocked();
+}
+
+modeSelect.addEventListener("change", () => loadMode(modeSelect.value));
+rollAll.addEventListener("click", rollUnlocked);
+
+const params = new URLSearchParams(location.search);
+loadMode(params.get("mode"));
