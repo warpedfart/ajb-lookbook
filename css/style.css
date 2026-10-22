@@ -493,7 +493,33 @@ button, input, select, textarea, summary { font-family: inherit; }
   transition: background 0.1s;
 }
 
-.loaded-row:has(.copyable:hover) .copyable,
+.copyable:hover,
 .copyable:focus-visible { background: var(--raised); }
 
-.loaded-row:has(.copyable:hover) .loaded-label { color: var(--text); }
+/* Renamable label on saved codes: reads as plain text until hovered or focused */
+.loaded-row .name-input {
+  width: 9rem;
+  min-height: 0;
+  padding: 0.1rem 0.4rem;
+  font: inherit;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  background: transparent;
+  border: 0;
+  border-radius: 0.4rem;
+  cursor: text;
+  transition: background 0.1s, color 0.1s;
+}
+
+.loaded-row .name-input::placeholder { color: var(--muted); opacity: 1; }
+
+.loaded-row .name-input:hover,
+.loaded-row .name-input:focus {
+  color: var(--text);
+  background: var(--raised);
+}
+
+.loaded-row .name-input:hover::placeholder,
+.loaded-row .name-input:focus::placeholder { color: var(--text); }
+
+.loaded-row .name-input:focus { outline: 2px solid var(--text); outline-offset: 1px; }
