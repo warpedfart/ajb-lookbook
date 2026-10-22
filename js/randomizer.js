@@ -3,26 +3,51 @@ import { loadItems } from "./data.js";
 import { TYPES } from "./types.js";
 
 const MODES = ["clothing", "den"];
-const DEN_COUNT = 12;
-
-const DEN_SLOTS = Array.from({ length: DEN_COUNT }, (_, index) => ({
-  slot: `den-${index}`,
-  label: `Den item ${index + 1}`,
-}));
+const DEFAULT_DEN_COUNT = 12;
+const MIN_DEN_COUNT = 1;
+const MAX_DEN_COUNT = 50;
 
 const modeSelect = document.getElementById("mode-select");
 const rollAll = document.getElementById("roll-all");
 const rows = document.getElementById("rows");
 const status = document.getElementById("status");
 
+const countInput = el("input", {
+  attrs: {
+    id: "count-input",
+    type: "number",
+    min: String(MIN_DEN_COUNT),
+    max: String(MAX_DEN_COUNT),
+    step: "1",
+    value: String(DEFAULT_DEN_COUNT),
+    inputmode: "numeric",
+  },
+});
+const countLabel = el("label", { text: "Items " }, [countInput]);
+(modeSelect.closest("label") ?? modeSelect).after(countLabel);
+
 let kind = "clothing";
+let denCount = DEFAULT_DEN_COUNT;
 let pools = new Map();
 let allItems = [];
 let current = new Map();
 let locked = new Set();
 
+function denSlots() {
+  return Array.from({ length: denCount }, (_, index) => ({
+    slot: `den-${index}`,
+    label: `Den item ${index + 1}`,
+  }));
+}
+
 function slotsFor(mode) {
-  return mode === "den" ? DEN_SLOTS : TYPES[mode];
+  return mode === "den" ? denSlots() : TYPES[mode];
+}
+
+function clampCount(value) {
+  const number = Number.parseInt(value, 10);
+  if (!Number.isInteger(number)) return denCount;
+  return Math.min(MAX_DEN_COUNT, Math.max(MIN_DEN_COUNT, number));
 }
 
 function randomIndex(max) {
@@ -62,6 +87,22 @@ function rollUnlocked() {
   }
   for (const { slot } of slots) {
     if (!locked.has(slot)) rollSlot(slot);
+  }
+  render();
+}
+
+function applyDenCount(count) {
+  denCount = count;
+  countInput.value = String(count);
+  const valid = new Set(denSlots().map((entry) => entry.slot));
+  for (const slot of [...current.keys()]) {
+    if (!valid.has(slot)) current.delete(slot);
+  }
+  for (const slot of [...locked]) {
+    if (!valid.has(slot)) locked.delete(slot);
+  }
+  for (const { slot } of denSlots()) {
+    if (!current.has(slot)) rollSlot(slot);
   }
   render();
 }
@@ -124,6 +165,7 @@ function rowFor(type) {
 }
 
 function render() {
+  countLabel.style.display = kind === "den" ? "" : "none";
   rows.replaceChildren(...slotsFor(kind).map(rowFor));
 }
 
@@ -151,6 +193,11 @@ async function loadMode(next) {
 
 modeSelect.addEventListener("change", () => loadMode(modeSelect.value));
 rollAll.addEventListener("click", rollUnlocked);
+countInput.addEventListener("change", () => {
+  if (kind === "den") applyDenCount(clampCount(countInput.value));
+});
 
 const params = new URLSearchParams(location.search);
+denCount = clampCount(params.get("count") ?? DEFAULT_DEN_COUNT);
+countInput.value = String(denCount);
 loadMode(params.get("mode"));
