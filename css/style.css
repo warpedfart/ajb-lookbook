@@ -574,15 +574,17 @@ button, input, select, textarea, summary { font-family: inherit; }
 
 .outfit-categories {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: stretch;
   gap: 0.75rem;
   min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
 }
 
 .outfit-category {
-  flex: 1 1 10rem;
-  min-width: 0;
+  flex: 0 0 10rem;
+  min-width: 10rem;
 }
 
 .top-actions {
