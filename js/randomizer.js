@@ -5,7 +5,6 @@ import { TYPES } from "./types.js";
 const MODES = ["clothing", "den"];
 const DEN_COUNT = 12;
 
-// Den mode ignores item types: it shows up to DEN_COUNT virtual slots filled from one big pool.
 const DEN_SLOTS = Array.from({ length: DEN_COUNT }, (_, index) => ({
   slot: `den-${index}`,
   label: `Den item ${index + 1}`,
@@ -38,13 +37,11 @@ function randomIndex(max) {
 function rollSlot(slot) {
   let pool;
   if (kind === "den") {
-    // Any den item, but never one that is already showing in another slot.
     const taken = new Set();
     for (const [otherSlot, item] of current) {
       if (otherSlot !== slot) taken.add(item);
     }
     pool = allItems.filter((item) => !taken.has(item));
-    // If there are fewer items than slots, allow repeats so every slot is filled.
     if (pool.length === 0) pool = allItems;
   } else {
     pool = pools.get(slot) ?? [];
@@ -59,7 +56,6 @@ function rollSlot(slot) {
 function rollUnlocked() {
   const slots = slotsFor(kind);
   if (kind === "den") {
-    // Clear unlocked slots first so their old items can be picked again.
     for (const { slot } of slots) {
       if (!locked.has(slot)) current.delete(slot);
     }
