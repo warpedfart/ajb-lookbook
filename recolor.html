@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://static.wikia.nocookie.net; object-src 'none'; base-uri 'none'; form-action 'self'">
   <title>🕮 | Recolor</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/recolor-preview.css">
   <script type="module" src="js/recolor.js"></script>
 </head>
 <body>
@@ -31,11 +32,19 @@
         <span id="copy-status" class="muted"></span>
       </div>
     </section>
+    <section id="preview-panel" class="panel" hidden>
+      <h2>Recolor Item</h2>
+      <div class="item-picker">
+        <input id="item-input" type="text" role="combobox" aria-expanded="false" aria-controls="item-results" aria-autocomplete="list" placeholder="Search for an item" autocomplete="off" aria-label="Clothing item">
+        <ul id="item-results" class="item-results" role="listbox" hidden></ul>
+      </div>
+      <canvas id="preview" class="preview" width="250" height="250" role="img" aria-label="Recolored item preview"></canvas>
+    </section>
     <section class="panel">
-      <h2>Load a Code</h2>
+      <h2>Save a Code</h2>
       <div class="code-row">
         <input id="code-input" type="text" inputmode="numeric" maxlength="10" aria-label="Color code">
-        <button id="load" class="toggle" type="button">Load</button>
+        <button id="save" class="toggle" type="button">Save</button>
       </div>
       <ul id="loaded" class="loaded"></ul>
     </section>
