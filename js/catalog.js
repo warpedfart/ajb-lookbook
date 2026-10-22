@@ -55,6 +55,10 @@ function writeState(state, replace = false) {
   render();
 }
 
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function placeholder(item) {
   return el("div", { className: "thumb placeholder", text: item.name.charAt(0).toUpperCase() });
 }
@@ -157,9 +161,11 @@ async function init() {
   searchInput.addEventListener("input", onSearchInput);
   prev.addEventListener("click", () => {
     writeState({ ...readState(), page: Math.max(1, currentPage - 1) });
+    scrollToTop();
   });
   next.addEventListener("click", () => {
     writeState({ ...readState(), page: currentPage + 1 });
+    scrollToTop();
   });
   window.addEventListener("popstate", () => {
     searchInput.value = readState().q;
