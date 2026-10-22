@@ -533,3 +533,62 @@ button, input, select, textarea, summary { font-family: inherit; }
 .chip[draggable="true"] {
   cursor: grab;
 }
+
+
+.grid.outfit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.outfit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.outfit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.outfit-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.outfit-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.outfit-categories {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.outfit-category {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
