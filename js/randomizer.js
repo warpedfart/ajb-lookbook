@@ -5,7 +5,7 @@ import { TYPES } from "./types.js";
 const MODES = ["clothing", "den"];
 const DEN_COUNT = 12;
 
-// Den mode ignores item types: it shows DEN_COUNT virtual slots filled from one big pool.
+// Den mode ignores item types: it shows up to DEN_COUNT virtual slots filled from one big pool.
 const DEN_SLOTS = Array.from({ length: DEN_COUNT }, (_, index) => ({
   slot: `den-${index}`,
   label: `Den item ${index + 1}`,
@@ -44,6 +44,8 @@ function rollSlot(slot) {
       if (otherSlot !== slot) taken.add(item);
     }
     pool = allItems.filter((item) => !taken.has(item));
+    // If there are fewer items than slots, allow repeats so every slot is filled.
+    if (pool.length === 0) pool = allItems;
   } else {
     pool = pools.get(slot) ?? [];
   }
@@ -98,13 +100,6 @@ function pictureFor(item) {
   return img;
 }
 
-// In den mode the label shows what kind of den item it is, if TYPES.den knows the type.
-function labelFor(type, item) {
-  if (kind !== "den" || !item) return type.label;
-  const match = (TYPES.den ?? []).find((entry) => entry.slot === item.slot);
-  return match ? match.label : type.label;
-}
-
 function rowFor(type) {
   const item = current.get(type.slot);
   const isLocked = locked.has(type.slot);
@@ -126,7 +121,7 @@ function rowFor(type) {
   });
   return el("li", { className: "card row" }, [
     pictureFor(item),
-    el("span", { className: "slot", text: labelFor(type, item) }),
+    el("span", { className: "slot", text: type.label }),
     el("span", { className: "name", text: item ? item.name : "No items" }),
     el("div", { className: "row-actions" }, [lockButton, rerollButton]),
   ]);

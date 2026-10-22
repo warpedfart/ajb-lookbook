@@ -100,7 +100,7 @@ function render() {
   const visible = filtered.slice(start, start + PAGE_SIZE);
   currentPage = page;
   letterSelect.value = state.letter;
-  slotSelect.value = state.slot;
+  if (slotSelect) slotSelect.value = state.slot;
   status.textContent = filtered.length === 0 ? "No items found." : `${filtered.length} items`;
   grid.replaceChildren(...visible.map(card));
   pageInfo.textContent = `Page ${page} of ${totalPages}`;
@@ -113,16 +113,18 @@ function fillControls() {
   for (const letter of LETTERS) {
     letterSelect.append(el("option", { text: letter.toUpperCase(), attrs: { value: letter } }));
   }
-  slotSelect.append(el("option", { text: "All types", attrs: { value: "all" } }));
-  for (const type of types) {
-    slotSelect.append(el("option", { text: type.label, attrs: { value: type.slot } }));
+  if (slotSelect) {
+    slotSelect.append(el("option", { text: "All types", attrs: { value: "all" } }));
+    for (const type of types) {
+      slotSelect.append(el("option", { text: type.label, attrs: { value: type.slot } }));
+    }
   }
 }
 
 function onFilterChange() {
   writeState({
     letter: letterSelect.value,
-    slot: slotSelect.value,
+    slot: slotSelect ? slotSelect.value : "all",
     q: searchInput.value,
     page: 1,
   });
@@ -132,7 +134,7 @@ function onSearchInput() {
   writeState(
     {
       letter: letterSelect.value,
-      slot: slotSelect.value,
+      slot: slotSelect ? slotSelect.value : "all",
       q: searchInput.value,
       page: 1,
     },
@@ -151,7 +153,7 @@ async function init() {
   fillControls();
   searchInput.value = readState().q;
   letterSelect.addEventListener("change", onFilterChange);
-  slotSelect.addEventListener("change", onFilterChange);
+  slotSelect?.addEventListener("change", onFilterChange);
   searchInput.addEventListener("input", onSearchInput);
   prev.addEventListener("click", () => {
     writeState({ ...readState(), page: Math.max(1, currentPage - 1) });
