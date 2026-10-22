@@ -523,3 +523,13 @@ button, input, select, textarea, summary { font-family: inherit; }
 .loaded-row .name-input:focus::placeholder { color: var(--text); }
 
 .loaded-row .name-input:focus { outline: 2px solid var(--text); outline-offset: 1px; }
+
+.drop-target {
+  outline: 2px dashed #888;
+  outline-offset: 2px;
+}
+
+.swatch-grid li[draggable="true"],
+.chip[draggable="true"] {
+  cursor: grab;
+}
