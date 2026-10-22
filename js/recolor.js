@@ -28,6 +28,7 @@ let spriteItems = new Map();
 let indexes = [0, 0, 0, 0];
 let loaded = [];
 let copyTimer = null;
+let dragged = null;
 const chips = [];
 const labels = [];
 const swatches = [];
@@ -83,7 +84,6 @@ function restoreLoaded() {
     if (!Array.isArray(saved)) return;
     loaded = saved
       .map((entry) => {
-        // Older saves were plain strings; newer ones are { code, name }
         if (typeof entry === "string") return { code: entry, name: "" };
         if (entry && typeof entry.code === "string") {
           return { code: entry.code, name: cleanName(entry.name) };
@@ -97,12 +97,53 @@ function restoreLoaded() {
   }
 }
 
+function endDrag() {
+  dragged = null;
+  for (const node of document.querySelectorAll(".drop-target")) {
+    node.classList.remove("drop-target");
+  }
+}
+
+function makeDraggable(node, getIndex, from) {
+  node.draggable = true;
+  node.addEventListener("dragstart", (event) => {
+    dragged = { index: getIndex(), from };
+    event.dataTransfer.effectAllowed = "copyMove";
+    event.dataTransfer.setData("text/plain", String(dragged.index));
+  });
+  node.addEventListener("dragend", endDrag);
+}
+
+function makeDropTarget(node, position) {
+  node.addEventListener("dragover", (event) => {
+    if (!dragged) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    node.classList.add("drop-target");
+  });
+  node.addEventListener("dragleave", (event) => {
+    if (!node.contains(event.relatedTarget)) node.classList.remove("drop-target");
+  });
+  node.addEventListener("drop", (event) => {
+    if (!dragged) return;
+    event.preventDefault();
+    const { index, from } = dragged;
+    if (from !== null && from !== position) indexes[from] = indexes[position];
+    indexes[position] = index;
+    endDrag();
+    render();
+  });
+}
+
 function buildLayer(position) {
   const chip = el("span", { className: "chip" });
   const label = el("span", { className: "sr-only" });
   const list = el("ul", { className: "swatch-grid" });
-  const menu = el("details", { className: "menu" }, [el("summary", {}, [chip, label]), list]);
+  const summary = el("summary", {}, [chip, label]);
+  const menu = el("details", { className: "menu" }, [summary, list]);
   const buttons = [];
+  makeDraggable(chip, () => indexes[position], position);
+  makeDropTarget(summary, position);
   palette.forEach((hex, index) => {
     const button = el("button", {
       className: "swatch",
@@ -114,13 +155,14 @@ function buildLayer(position) {
       },
     });
     paint(button, hex);
-    button.addEventListener("click", () => {
+        button.addEventListener("click", () => {
       indexes[position] = index;
-      menu.open = false;
       render();
     });
     buttons.push(button);
-    list.append(el("li", {}, [button]));
+    const item = el("li", {}, [button]);
+    makeDraggable(item, () => index, null);
+    list.append(item);
   });
   chips.push(chip);
   labels.push(label);
@@ -150,7 +192,6 @@ function render() {
   codeEl.textContent = code === null ? "Not a valid combination" : String(code);
   if (code !== null) store(CODE_KEY, String(code));
 
-  // Only make the code copyable (hover highlight, click, keyboard) when it's valid
   const valid = code !== null;
   codeEl.classList.toggle("copyable", valid);
   if (valid) {
@@ -179,11 +220,11 @@ function renderLoaded() {
         colors.map((index) => {
           const chip = el("span", { className: "chip", text: String(index) });
           paint(chip, palette[index]);
+          makeDraggable(chip, () => index, null);
           return chip;
         }),
       );
 
-      // Renamable label: looks like plain text until hovered or focused
       const nameInput = el("input", {
         className: "name-input",
         attrs: {
