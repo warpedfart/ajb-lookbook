@@ -594,3 +594,241 @@ button, input, select, textarea, summary { font-family: inherit; }
   gap: 0.5rem;
   margin-left: auto;
 }
+
+.sub {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.paste-row { margin-top: 1rem; }
+.paste-row input { flex: 1 1 10rem; min-width: 0; }
+
+.code-row .toggle.save-code { margin-left: auto; }
+
+a.toggle,
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.star { min-width: 44px; padding: 0 0.75rem; }
+
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.fav-tray {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.fav-tray[hidden] { display: none; }
+.fav-tray p { margin: 0.25rem 0.5rem; }
+
+.fav-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.saved-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.saved-items:not(:empty) { margin-top: 1rem; }
+
+.saved-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.saved-load {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.saved-load:hover,
+.saved-load:focus-visible { background: var(--raised); }
+
+.saved-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+}
+
+.saved-thumb.missing { visibility: hidden; }
+
+.saved-name {
+  max-width: 10rem;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
+.fav-list .saved-thumb { width: 40px; height: 40px; }
+
+.sub {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.paste-row { margin-top: 1rem; }
+.paste-row input { flex: 1 1 10rem; min-width: 0; }
+
+.code-row .toggle.save-code { margin-left: auto; }
+
+a.toggle,
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.star { min-width: 44px; padding: 0 0.75rem; }
+
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.fav-tray {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.fav-tray[hidden] { display: none; }
+.fav-tray p { margin: 0.25rem 0.5rem; }
+
+.fav-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.saved-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.saved-items:not(:empty) { margin-top: 1rem; }
+
+.saved-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.saved-load {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.saved-load:hover,
+.saved-load:focus-visible { background: var(--raised); }
+
+.saved-thumb {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+}
+
+.saved-thumb.missing { visibility: hidden; }
+
+.saved-name {
+  max-width: 10rem;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
+.fav-list .saved-thumb { width: 40px; height: 40px; }
+
+.card { position: relative; }
+
+.card-star {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.card:hover .card-star,
+.card:focus-within .card-star,
+.card-star:has(.star[aria-pressed="true"]) { opacity: 1; }
+
+.card-star .star {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+@media (hover: none) {
+  .card-star { opacity: 1; }
+}

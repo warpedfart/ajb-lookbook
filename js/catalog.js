@@ -1,6 +1,7 @@
 import { el } from "./ui.js";
 import { loadItems } from "./data.js";
 import { TYPES } from "./types.js";
+import { starButton } from "./favorites-ui.js";
 
 const PAGE_SIZE = 50;
 const MAX_QUERY = 60;
@@ -86,6 +87,9 @@ function card(item) {
     media,
     el("span", { className: "name", text: item.name }),
     el("span", { className: "slot", text: item.slot }),
+    el("div", { className: "card-star" }, [
+      starButton({ id: item.id, name: item.name, image: item.image ?? "", kind }),
+    ]),
   ]);
 }
 
