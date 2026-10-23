@@ -6,6 +6,15 @@ export const TYPES = {
     { slot: "legs", label: "Legs" },
     { slot: "tail", label: "Tail" },
   ],
-den: [{ slot: "den", label: "Den Item" }]
-
-}
+  den: [
+    { slot: "furniture", label: "Furniture" },
+    { slot: "decorations", label: "Decorations" },
+    { slot: "plants", label: "Plants" },
+    { slot: "rugs", label: "Rugs" },
+    { slot: "hanging", label: "Hanging" },
+    { slot: "plushies", label: "Plushies" },
+    { slot: "walls-floors", label: "Walls & Floors" },
+    { slot: "masterpieces", label: "Masterpieces" },
+    { slot: "pets", label: "Pets" },
+  ],
+};
