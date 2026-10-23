@@ -1,55 +1,56 @@
-
 import { el } from "./ui.js";
 import { loadPalette, pack, unpack, LAYERS } from "./colors.js";
 import { hexToGame, renderSprite } from "./sprite-render.js";
+import { KEYS, read, write, readRaw, writeRaw, migrateFromSession, getFavorites } from "./store.js";
+import { starButton } from "./favorites-ui.js";
 
-const undoStack = [];
 const layersEl = document.getElementById("layers");
 const codeEl = document.getElementById("code");
 const copyStatus = document.getElementById("copy-status");
 const codeInput = document.getElementById("code-input");
 const pasteButton = document.getElementById("paste");
 const saveButton = document.getElementById("save");
+const saveCurrentButton = document.getElementById("save-current");
+const savedEmpty = document.getElementById("saved-empty");
 const loadedEl = document.getElementById("loaded");
 const status = document.getElementById("status");
 const previewPanel = document.getElementById("preview-panel");
 const previewCanvas = document.getElementById("preview");
 const itemInput = document.getElementById("item-input");
 const resultsEl = document.getElementById("item-results");
+const saveItemButton = document.getElementById("save-item");
+const itemStatus = document.getElementById("item-status");
+const itemStar = document.getElementById("item-star");
+const favToggle = document.getElementById("fav-toggle");
+const favTray = document.getElementById("fav-tray");
+const favList = document.getElementById("fav-list");
+const favEmpty = document.getElementById("fav-empty");
+const itemsEl = document.getElementById("saved-items");
+const itemsEmpty = document.getElementById("items-empty");
 
-const saveCurrentButton = el("button", {
-  className: "toggle",
-  text: "Save",
-  attrs: { type: "button" },
-});
-copyStatus.after(saveCurrentButton);
-
-const savedPanel = el("section", { className: "panel" }, [
-  el("h2", { text: "Saved Codes" }),
-  el("p", { className: "muted", text: "No saved codes yet." }),
-]);
-const savedEmpty = savedPanel.querySelector("p");
-document.querySelector("main").append(savedPanel);
-savedPanel.append(loadedEl);
-
-const CODE_KEY = "ajb-recolor-code";
-const LOADED_KEY = "ajb-recolor-loaded";
 const MAX_LOADED = 20;
+const MAX_ITEMS = 30;
 const MAX_NAME = 12;
 const SPRITE_DIR = "data/sprites/";
 
 let palette = [];
 let game = [];
 let sprite = null;
-let spriteItems = new Map();
+let currentItem = null;
+const spriteItems = new Map();
+const itemsById = new Map();
 let indexes = [0, 0, 0, 0];
 let loaded = [];
+let savedItems = [];
 let copyTimer = null;
+let itemTimer = null;
 const removed = [];
 let dragged = null;
 const chips = [];
 const labels = [];
 const swatches = [];
+
+migrateFromSession([KEYS.code, KEYS.codes]);
 
 function inkFor(hex) {
   const r = Number.parseInt(hex.slice(1, 3), 16);
@@ -74,46 +75,50 @@ function cleanName(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_NAME);
 }
 
-function store(key, value) {
-  try {
-    sessionStorage.setItem(key, value);
-  } catch {
-    return;
-  }
+function cleanItem(entry) {
+  if (!entry || typeof entry.id !== "string" || typeof entry.name !== "string") return null;
+  if (typeof entry.code !== "string" || !parseCode(entry.code)) return null;
+  const image = typeof entry.image === "string" && entry.image.startsWith("https://") ? entry.image : "";
+  return { id: entry.id, name: entry.name, image, code: entry.code };
 }
 
 function saveLoaded() {
-  store(LOADED_KEY, JSON.stringify(loaded));
+  write(KEYS.codes, loaded);
+}
+
+function saveItems() {
+  write(KEYS.items, savedItems);
 }
 
 function restoreCode() {
-  try {
-    const saved = sessionStorage.getItem(CODE_KEY);
-    const parsed = saved === null ? null : parseCode(saved);
-    if (parsed) indexes = parsed;
-  } catch {
-    return;
-  }
+  const saved = readRaw(KEYS.code);
+  const parsed = saved === null ? null : parseCode(saved);
+  if (parsed) indexes = parsed;
 }
 
 function restoreLoaded() {
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(LOADED_KEY) ?? "[]");
-    if (!Array.isArray(saved)) return;
-    loaded = saved
-      .map((entry) => {
-        if (typeof entry === "string") return { code: entry, name: "" };
-        if (entry && typeof entry.code === "string") {
-          return { code: entry.code, name: cleanName(entry.name) };
-        }
-        return null;
-      })
-      .filter((entry) => entry && parseCode(entry.code))
-      .slice(0, MAX_LOADED);
-  } catch {
+  const saved = read(KEYS.codes, []);
+  if (!Array.isArray(saved)) {
     loaded = [];
+    return;
   }
+  loaded = saved
+    .map((entry) => {
+      if (typeof entry === "string") return { code: entry, name: "" };
+      if (entry && typeof entry.code === "string") {
+        return { code: entry.code, name: cleanName(entry.name) };
+      }
+      return null;
+    })
+    .filter((entry) => entry && parseCode(entry.code))
+    .slice(0, MAX_LOADED);
 }
+
+function restoreItems() {
+  const saved = read(KEYS.items, []);
+  savedItems = Array.isArray(saved) ? saved.map(cleanItem).filter(Boolean).slice(0, MAX_ITEMS) : [];
+}
+
 
 function endDrag() {
   dragged = null;
@@ -188,6 +193,7 @@ function buildLayer(position) {
   return menu;
 }
 
+
 function drawPreview() {
   if (!sprite) return;
   renderSprite(previewCanvas, [{ data: sprite, indexes }], game, 0);
@@ -208,7 +214,7 @@ function render() {
   });
   const code = pack(indexes);
   codeEl.textContent = code === null ? "Not a valid combination" : String(code);
-  if (code !== null) store(CODE_KEY, String(code));
+  if (code !== null) writeRaw(KEYS.code, String(code));
 
   const valid = code !== null;
   codeEl.classList.toggle("copyable", valid);
@@ -221,28 +227,85 @@ function render() {
     codeEl.removeAttribute("tabindex");
     codeEl.removeAttribute("title");
   }
+  saveItemButton.disabled = !currentItem || !valid;
 
   clearTimeout(copyTimer);
   copyStatus.textContent = copyHint();
   drawPreview();
 }
 
+
+function colorChips(colors) {
+  return el(
+    "div",
+    { className: "loaded-chips" },
+    colors.map((index) => {
+      const chip = el("span", { className: "chip", text: String(index) });
+      paint(chip, palette[index]);
+      makeDraggable(chip, () => index, null);
+      return chip;
+    }),
+  );
+}
+
+function copyableCode(text) {
+  const codeText = el("span", {
+    className: "loaded-code copyable",
+    text,
+    attrs: { role: "button", tabindex: "0", title: "Click to copy" },
+  });
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      codeText.textContent = "Copied";
+    } catch {
+      codeText.textContent = "Copy failed";
+    }
+    setTimeout(() => {
+      codeText.textContent = text;
+    }, 1200);
+  };
+  codeText.addEventListener("click", copyCode);
+  codeText.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      copyCode();
+    }
+  });
+  return codeText;
+}
+
+function removeButtonFor(label, onRemove) {
+  const button = el("button", {
+    className: "toggle",
+    text: "×",
+    attrs: {
+      type: "button",
+      title: "Remove (Ctrl+Z to undo)",
+      "aria-label": label,
+    },
+  });
+  button.addEventListener("click", onRemove);
+  return button;
+}
+
+function thumbFor(image, className, size) {
+  if (!image) return el("span", { className: `${className} missing` });
+  const thumb = el("img", {
+    className,
+    attrs: { src: image, alt: "", width: String(size), height: String(size), loading: "lazy", referrerpolicy: "no-referrer" },
+  });
+  thumb.addEventListener("error", () => thumb.classList.add("missing"));
+  return thumb;
+}
+
+
 function renderLoaded() {
-  savedEmpty.style.display = loaded.length === 0 ? "" : "none";
+  savedEmpty.hidden = loaded.length > 0;
   loadedEl.replaceChildren(
     ...loaded.map((entry, position) => {
-      const text = entry.code;
-      const colors = parseCode(text) ?? [];
-      const swatchRow = el(
-        "div",
-        { className: "loaded-chips" },
-        colors.map((index) => {
-          const chip = el("span", { className: "chip", text: String(index) });
-          paint(chip, palette[index]);
-          makeDraggable(chip, () => index, null);
-          return chip;
-        }),
-      );
+      const colors = parseCode(entry.code) ?? [];
+      const swatchRow = colorChips(colors);
 
       const nameInput = el("input", {
         className: "name-input",
@@ -280,42 +343,8 @@ function renderLoaded() {
         }
       });
 
-      const codeText = el("span", {
-        className: "loaded-code copyable",
-        text,
-        attrs: { role: "button", tabindex: "0", title: "Click to copy" },
-      });
-      const copyCode = async () => {
-        try {
-          await navigator.clipboard.writeText(text);
-          codeText.textContent = "Copied";
-        } catch {
-          codeText.textContent = "Copy failed";
-        }
-        setTimeout(() => {
-          codeText.textContent = text;
-        }, 1200);
-      };
-      codeText.addEventListener("click", copyCode);
-      codeText.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          copyCode();
-        }
-      });
-
-      const removeButton = el("button", {
-        className: "toggle",
-        text: "×",
-        attrs: {
-          type: "button",
-          title: "Remove (Ctrl+Z to undo)",
-          "aria-label": `Remove code ${position + 1}`,
-        },
-      });
-      removeButton.addEventListener("click", () => removeLoaded(entry));
-
-      const row = el("li", { className: "loaded-row" }, [nameInput, codeText, swatchRow, removeButton]);
+      const removeButton = removeButtonFor(`Remove code ${position + 1}`, () => removeLoaded(entry));
+      const row = el("li", { className: "loaded-row" }, [nameInput, copyableCode(entry.code), swatchRow, removeButton]);
       if (sprite) {
         swatchRow.classList.add("clickable");
         swatchRow.title = "Preview this code";
@@ -333,21 +362,133 @@ function removeLoaded(entry) {
   const position = loaded.indexOf(entry);
   if (position === -1) return;
   loaded.splice(position, 1);
-  removed.push({ entry, position });
+  removed.push({ list: "codes", entry, position });
   saveLoaded();
   renderLoaded();
 }
 
+
+function renderItems() {
+  itemsEmpty.hidden = savedItems.length > 0;
+  itemsEl.replaceChildren(
+    ...savedItems.map((entry, position) => {
+      const colors = parseCode(entry.code) ?? [];
+      const load = el(
+        "button",
+        {
+          className: "saved-load",
+          attrs: {
+            type: "button",
+            title: "Load this item and code",
+            "aria-label": `Load ${entry.name} with code ${entry.code}`,
+          },
+        },
+        [thumbFor(entry.image, "saved-thumb", 56), el("span", { className: "saved-name", text: entry.name })],
+      );
+      load.addEventListener("click", () => loadSavedItem(entry));
+      const removeButton = removeButtonFor(`Remove saved item ${position + 1}: ${entry.name}`, () => removeSavedItem(entry));
+      return el("li", { className: "saved-item" }, [load, copyableCode(entry.code), colorChips(colors), removeButton]);
+    }),
+  );
+}
+
+function removeSavedItem(entry) {
+  const position = savedItems.indexOf(entry);
+  if (position === -1) return;
+  savedItems.splice(position, 1);
+  removed.push({ list: "items", entry, position });
+  saveItems();
+  renderItems();
+}
+
+async function loadSavedItem(entry) {
+  const item = itemsById.get(entry.id);
+  if (!item) {
+    status.textContent = "That item isn't available for recoloring right now.";
+    return;
+  }
+  itemInput.value = item.name;
+  await selectItem(item, entry.code);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function itemMessage(text) {
+  itemStatus.textContent = text;
+  clearTimeout(itemTimer);
+  itemTimer = setTimeout(() => {
+    itemStatus.textContent = "";
+  }, 1500);
+}
+
+function saveCurrentItem() {
+  const code = pack(indexes);
+  if (!currentItem) return itemMessage("Pick an item first");
+  if (code === null) return itemMessage("Not valid");
+  const text = String(code);
+  if (savedItems.some((entry) => entry.id === currentItem.id && entry.code === text)) {
+    return itemMessage("Already saved");
+  }
+  if (savedItems.length >= MAX_ITEMS) return itemMessage(`Limit of ${MAX_ITEMS} reached`);
+  savedItems.push({ id: currentItem.id, name: currentItem.name, image: currentItem.image, code: text });
+  saveItems();
+  renderItems();
+  return itemMessage("Saved");
+}
+
+
+function renderTray() {
+  const favorites = getFavorites();
+  const usable = favorites
+    .filter((fav) => fav.kind === "clothing")
+    .map((fav) => itemsById.get(fav.id))
+    .filter(Boolean);
+  const skipped = favorites.length - usable.length;
+  if (favorites.length === 0) {
+    favEmpty.textContent = "No favorites yet. Star items on the Clothing or Den Items pages.";
+  } else if (skipped > 0) {
+    favEmpty.textContent = `${skipped} favorite${skipped === 1 ? "" : "s"} can't be recolored.`;
+  } else {
+    favEmpty.textContent = "";
+  }
+  favEmpty.hidden = favEmpty.textContent === "";
+  favList.replaceChildren(
+    ...usable.map((item) => {
+      const button = el(
+        "button",
+        { className: "saved-load", attrs: { type: "button", title: `Recolor ${item.name}` } },
+        [thumbFor(item.image, "saved-thumb", 40), el("span", { className: "saved-name", text: item.name })],
+      );
+      button.addEventListener("click", () => chooseItem(item));
+      return el("li", {}, [button]);
+    }),
+  );
+}
+
+favToggle.addEventListener("click", () => {
+  const open = favTray.hidden;
+  favTray.hidden = !open;
+  favToggle.setAttribute("aria-pressed", String(open));
+  if (open) renderTray();
+});
+
+
 function undoRemove() {
   const last = removed.pop();
   if (!last) return false;
-  if (loaded.length >= MAX_LOADED) {
+  const isItems = last.list === "items";
+  const list = isItems ? savedItems : loaded;
+  if (list.length >= (isItems ? MAX_ITEMS : MAX_LOADED)) {
     removed.push(last);
     return true;
   }
-  loaded.splice(Math.min(last.position, loaded.length), 0, last.entry);
-  saveLoaded();
-  renderLoaded();
+  list.splice(Math.min(last.position, list.length), 0, last.entry);
+  if (isItems) {
+    saveItems();
+    renderItems();
+  } else {
+    saveLoaded();
+    renderLoaded();
+  }
   return true;
 }
 
@@ -357,6 +498,7 @@ document.addEventListener("keydown", (event) => {
   if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
   if (undoRemove()) event.preventDefault();
 });
+
 
 async function copyCurrentCode() {
   const code = pack(indexes);
@@ -435,6 +577,7 @@ function saveCurrent() {
 pasteButton.addEventListener("click", pasteIntoInput);
 saveButton.addEventListener("click", saveFromInput);
 saveCurrentButton.addEventListener("click", saveCurrent);
+saveItemButton.addEventListener("click", saveCurrentItem);
 codeInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") saveFromInput();
 });
@@ -452,7 +595,8 @@ document.addEventListener("click", (event) => {
   }
 });
 
-async function selectItem(item) {
+
+async function selectItem(item, code) {
   try {
     const response = await fetch(`${SPRITE_DIR}${item.id}.json`);
     if (!response.ok) throw new Error("missing");
@@ -464,8 +608,14 @@ async function selectItem(item) {
     return;
   }
   status.textContent = "";
+  currentItem = item;
+  itemStar.replaceChildren(
+    starButton({ id: item.id, name: item.name, image: item.image, kind: "clothing" }),
+  );
+  const fromCode = typeof code === "string" ? parseCode(code) : null;
   const defaults = typeof item.code === "string" ? parseCode(item.code) : null;
-  if (defaults) indexes = defaults;
+  const next = fromCode ?? defaults;
+  if (next) indexes = [...next];
   render();
   renderLoaded();
 }
@@ -496,7 +646,9 @@ async function loadItems() {
     if (!Array.isArray(items) || items.length === 0) return;
     for (const item of items) {
       if (typeof item.id !== "string" || typeof item.name !== "string") continue;
-      spriteItems.set(item.name, { ...item, image: images.get(item.id) ?? "" });
+      const built = { ...item, image: images.get(item.id) ?? "" };
+      spriteItems.set(item.name, built);
+      itemsById.set(item.id, built);
     }
     previewPanel.hidden = false;
   } catch {
@@ -590,6 +742,16 @@ document.addEventListener("click", (event) => {
   if (!event.target.closest(".item-picker")) closeResults();
 });
 
+window.addEventListener("storage", (event) => {
+  if (palette.length === 0) return;
+  if (event.key !== null && ![KEYS.codes, KEYS.items, KEYS.favorites].includes(event.key)) return;
+  restoreLoaded();
+  restoreItems();
+  renderLoaded();
+  renderItems();
+  if (!favTray.hidden) renderTray();
+});
+
 async function init() {
   try {
     palette = await loadPalette();
@@ -603,29 +765,17 @@ async function init() {
   }
   restoreCode();
   restoreLoaded();
+  restoreItems();
   await loadItems();
   render();
   renderLoaded();
+  renderItems();
   const requested = new URLSearchParams(location.search).get("item");
-  const match = requested === null ? null : [...spriteItems.values()].find((item) => item.id === requested);
+  const match = requested === null ? null : itemsById.get(requested);
   if (match) {
     itemInput.value = match.name;
     await selectItem(match);
   }
 }
-
-document.addEventListener("keydown", (event) => {
-  if (
-    (event.ctrlKey || event.metaKey) &&
-    event.key.toLowerCase() === "z"
-  ) {
-    if (undoStack.length === 0) return;
-
-    event.preventDefault();
-    loaded = undoStack.pop();
-    saveLoaded();
-    renderLoaded();
-  }
-});
 
 init();

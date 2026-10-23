@@ -7,6 +7,7 @@
   <title>🕮 | Recolor</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/recolor-preview.css">
+  <link rel="stylesheet" href="css/saved.css">
   <script type="module" src="js/recolor.js"></script>
 </head>
 <body>
@@ -18,10 +19,11 @@
       <a href="den.html">Den Items</a>
       <a href="randomizer.html">Randomizer</a>
       <a href="recolor.html" aria-current="page">Recolor</a>
+      <a href="favorites.html">Favorites</a>
     </nav>
   </header>
   <main>
-    
+
 <h1>Recolor</h1>
 <p id="status" class="muted"></p>
 
@@ -35,26 +37,48 @@
     <ul id="item-results" class="item-results"
       role="listbox" hidden></ul>
   </div>
+  <div class="item-actions">
+    <button id="fav-toggle" class="toggle" type="button"
+      aria-pressed="false" aria-controls="fav-tray">★ Favorites</button>
+    <span id="item-star"></span>
+    <button id="save-item" class="toggle" type="button" disabled>Save item</button>
+    <span id="item-status" class="muted"></span>
+  </div>
+  <div id="fav-tray" class="fav-tray" hidden>
+    <p id="fav-empty" class="muted" hidden></p>
+    <ul id="fav-list" class="fav-list"></ul>
+  </div>
   <canvas id="preview" class="preview" width="250" height="250"
     role="img" aria-label="Recolored item preview"></canvas>
 </section>
 
 <section class="panel">
-  <h2>Color Code</h2>
+  <h2>Create a Code</h2>
   <div id="layers" class="layers"></div>
   <div class="code-row">
     <output id="code" class="code"></output>
     <span id="copy-status" class="muted"></span>
+    <button id="save-current" class="toggle save-code" type="button">Save</button>
   </div>
+
+  <div class="code-row paste-row">
+    <input id="code-input" type="text" inputmode="numeric"
+      maxlength="10" placeholder="Or paste a code" aria-label="Color code">
+    <button id="paste" class="toggle" type="button">Paste</button>
+    <button id="save" class="toggle" type="button">Add</button>
+  </div>
+
+  <h3 class="sub">Saved Codes</h3>
+  <p id="saved-empty" class="muted">No saved codes yet.</p>
+  <ul id="loaded" class="loaded"></ul>
 </section>
 
 <section class="panel">
-  <h2>Save a Code</h2>
-  <div class="code-row">
-    <input id="code-input" type="text" inputmode="numeric"
-      maxlength="10" aria-label="Color code">
-    <button id="paste" class="toggle" type="button">Paste</button>
-    <button id="save" class="toggle" type="button">Save</button>
-  </div>
-  <ul id="loaded" class="loaded"></ul>
+  <h2>Saved Items</h2>
+  <p id="items-empty" class="muted">No saved items yet.</p>
+  <ul id="saved-items" class="saved-items"></ul>
 </section>
+
+  </main>
+</body>
+</html>
